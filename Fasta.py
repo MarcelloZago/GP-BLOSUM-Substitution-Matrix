@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import pandas as pd
 
 from Bio import AlignIO
 
@@ -56,7 +57,7 @@ class AlignmentFasta:
 
         Recommended use:
 
-        alignment = AlingmentFasta.read([path_to_fasta])
+        alignment = AlignmentFasta.read([path_to_fasta])
 
         Parameters
         ----------
@@ -134,8 +135,13 @@ class AlignmentFasta:
         """
         assert path.endswith('.fa') or path.endswith('.fasta'), 'Can only write into a fasta file.'
 
-        with open(path, 'w') as file:
+        # check if the file already exists, if not create a new empty file
+        if not os.path.isfile(path):
+            with open(path, 'w') as _:
+                pass
 
+        # we now know that the file must be existing
+        with open(path, 'w') as file:
             # iterate over all headers and their respective sequence
             for header, sequence in self.sequences.items():
                 file.write(f'>{header}')
@@ -147,15 +153,69 @@ class AlignmentFasta:
                 file.write('\n'.join(sequence[i:i + 60] for i in range(0, len(sequence), 60)))
                 file.write('\n')
 
+    @staticmethod
+    def preprocess_directory(path: str) -> None:
+        """
+        This function preprocesses all fasta files in the given directory.
+
+        By preprocessing the deletion of columns with gaps is meant. All the processed fasta files will be stored in the
+        directory called "processed". The filenames will be lost, because at this point we are just interested in the
+        alignment and not in what it is.
+
+        Parameters
+        ----------
+        path : str
+            The path that contains all fasta files that should be processed. It must be a path for a directory. Other
+            files in the directory will be ignored.
+
+        Returns
+        -------
+        None
+        """
+
+        alignment_list = AlignmentFasta.read_directory(path)  # get all alignments from the directory
+
+        folder_name = path.split('\\')[-1]  # get the name of the folder to know where the file came from
+
+        # iterate over all alignments, delete their gaped columns and save them
+        for index, alignment in enumerate(alignment_list):
+            alignment.__delete_gaped_columns()
+            alignment.write_file(f'processed\\{folder_name}_processed_{index}.fasta')
+
+    def __delete_gaped_columns(self) -> None:
+        """
+        Private function that deletes all columns that contain a gap. For the operation a pandas dataframe is used,
+        because it already implements certain functions in a time efficient way.
+
+        Returns
+        -------
+        None
+        """
+
+        # transform the strings to lists of characters
+        sequence_dict = self.sequences
+
+        for key in sequence_dict.keys():
+            sequence_dict[key] = list(sequence_dict[key])
+
+        # work with a pandas dataframe to do certain actions fast
+        seq_df = pd.DataFrame.from_dict(sequence_dict, orient='index')
+        seq_df = seq_df.loc[:, ~(seq_df == '-').any()]  # delete all columns with a gap
+
+        # convert the dataframe back to a dictionary of lists
+        sequence_dict = seq_df.T.to_dict('list')
+
+        # convert the dictionary of lists to a typical dictionary of strings
+        for key in sequence_dict.keys():
+            sequence_dict[key] = ''.join(sequence_dict[key])
+
+        # fix the processed alignment
+        self.sequences = sequence_dict
+
 
 def main():
-    al = AlignmentFasta.read_file('Data\\NP.fa')
-
-    print(list(al.sequences.items())[0])
-    print(al.seq_length)
-    print(al.num_of_sequences)
-
-    al.write_file('Data\\new.fasta')
+    AlignmentFasta.preprocess_directory('Data\\')
+    return None
 
 
 if __name__ == '__main__':
