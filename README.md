@@ -6,8 +6,8 @@ Github for the Group Project about BLOSUM Substitution Matrices
 
 This section is a collection of all functions and tasks that need to be implemented. Please add your name in brackets so that the others know that the respective function/ task is already worked on.
 
-- Deletion of gaps in the alignment (Preprocessing) []
-- Calculation of identicallity []
+- Deletion of gaps in the alignment (Preprocessing) [Marcello]
+- Calculation of identicality []
 - Counting of frequencies []
 - Calculation of the actual log-odd-scores (the matrix) []
 
