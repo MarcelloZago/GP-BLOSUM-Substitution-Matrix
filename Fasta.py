@@ -1,10 +1,42 @@
 from __future__ import annotations
 
 import os
+import itertools
 import pandas as pd
 
 from Bio import AlignIO
 
+def calulate_identity(align: AlignmentFasta) -> int:
+    """
+    Function that calculates the identity of sequences in file
+    Identical residues divided by length of alignment multiplied by amount of pairs
+
+    Parameters
+    ----------
+    align : AlignmentFasta
+        All alignments of a file.
+
+    Returns
+    -------
+    Identity of sequences as round(int)
+    """
+
+    seqs = []
+    identical_residues = 0
+    num_of_pairs = 0
+
+    for values in align.sequences.values(): #get all sequences of file
+        seqs.append(values)
+
+    for i in itertools.combinations(seqs,2): #find all pairwise combinations
+        for j in range(len(i[0])):
+            if i[0][j] == i[1][j]: #if same residue in row
+                identical_residues += 1
+        num_of_pairs += 1
+
+    id_num = (identical_residues / (align.seq_length * num_of_pairs)) * 100 #calulate identity
+
+    return round(id_num)
 
 class AlignmentFasta:
 
@@ -180,7 +212,8 @@ class AlignmentFasta:
         # iterate over all alignments, delete their gaped columns and save them
         for index, alignment in enumerate(alignment_list):
             alignment.__delete_gaped_columns()
-            alignment.write_file(f'processed\\{folder_name}_processed_{index}.fasta')
+            id_num = calulate_identity(alignment) #calculate identity
+            alignment.write_file(f'processed\\{folder_name}_{id_num}_processed_{index}.fasta')
 
     def __delete_gaped_columns(self) -> None:
         """
