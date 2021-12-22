@@ -4,7 +4,10 @@ import os
 import itertools
 import pandas as pd
 
+import numpy as np
+
 from Bio import AlignIO
+
 
 def calulate_identity(align: AlignmentFasta) -> int:
     """
@@ -37,6 +40,7 @@ def calulate_identity(align: AlignmentFasta) -> int:
     id_num = (identical_residues / (align.seq_length * num_of_pairs)) * 100 #calulate identity
 
     return round(id_num)
+
 
 class AlignmentFasta:
 
@@ -105,6 +109,8 @@ class AlignmentFasta:
         # replace the spaces in the header to get more precise ids
         AlignmentFasta.__fix_header_spaces(path)
 
+        AlignmentFasta.__preformat_fasta_file(path)
+
         with open(path, 'r') as file:
             # use of Biopython's implementation, because it is more efficient
             alignment = AlignIO.read(file, 'fasta')
@@ -147,9 +153,54 @@ class AlignmentFasta:
             if not (filename.endswith('.fa') or filename.endswith('.fasta')):
                 continue
 
-            align_list.append(AlignmentFasta.read_file(path + '\\' + filename))
+            '''
+            Preprocess the file so that all included sequences have the same length. This needs to be done, because 
+            MEGAN generates Alignments with 'flutter edges', which we will just cut off.
+            '''
+
+            align_list.append(AlignmentFasta.read_file(f'{path}\\{filename}'))
 
         return align_list
+
+    @staticmethod
+    def __preformat_fasta_file(filepath: str):
+        """
+        Private function that preformats the given fasta file so that it can be read by the functions from the Biopython
+        package.
+
+        Generally, this means, to cut of the fluttered end of the alignments. This function, therefore, will not affect
+        already correctly formatted alignments, because these will already have sequences of the same length (padded
+        with gaps if needed).
+
+        This function will not be needed anymore, if we find a dataset of correctly formatted alignments.
+
+        Parameters
+        ----------
+        filepath : str
+            The path to the fasta file that will be preformatted.
+
+        Returns
+        -------
+        None
+        """
+
+        with open(filepath, 'r+') as file:
+            lines = file.readlines()
+
+            # get the lines that are the sequences
+            sequences = [line for line in lines if not line.startswith('>')]
+
+            # get the shorted sequence length
+            min_seq_length = min([len(seq) for seq in sequences])
+
+            # cut the appropriate lines (sequence lines) to the respective length and write everything to the file
+            for index, line in enumerate(lines):
+                if not line.startswith('>'):
+                    lines[index] = line[:min_seq_length-1] + '\n'
+
+            file.seek(0)
+            file.writelines(lines)
+            file.truncate()
 
     def write_file(self, path: str) -> None:
         """
@@ -247,7 +298,7 @@ class AlignmentFasta:
 
 
 def main():
-    AlignmentFasta.preprocess_directory('Data\\')
+    AlignmentFasta.preprocess_directory('Data\\Bacteroidetes_Alphaproteobacteria_Gammaproteobacteria_priest_2021')
     return None
 
 
