@@ -4,8 +4,6 @@ import os
 import itertools
 import pandas as pd
 
-import numpy as np
-
 from Bio import AlignIO
 
 
@@ -262,14 +260,19 @@ class AlignmentFasta:
 
         # iterate over all alignments, delete their gaped columns and save them
         for index, alignment in enumerate(alignment_list):
-            alignment.__delete_gaped_columns()
+            alignment.__delete_unusable_columns()
             id_num = calulate_identity(alignment) #calculate identity
             alignment.write_file(f'processed\\{folder_name}_{id_num}_processed_{index}.fasta')
 
-    def __delete_gaped_columns(self) -> None:
+    def __delete_unusable_columns(self) -> None:
         """
-        Private function that deletes all columns that contain a gap. For the operation a pandas dataframe is used,
-        because it already implements certain functions in a time efficient way.
+        Private function that deletes all columns that contain unusable columns. For the operation a pandas dataframe is
+        used, because it already implements certain functions in a time efficient way.
+
+        Unusable columns contain following characters:
+            - '-'
+            - '*'
+            - characters that resemble different amino acids
 
         Returns
         -------
@@ -285,13 +288,15 @@ class AlignmentFasta:
         # work with a pandas dataframe to do certain actions fast
         seq_df = pd.DataFrame.from_dict(sequence_dict, orient='index')
         seq_df = seq_df.loc[:, ~(seq_df == '-').any()]  # delete all columns with a gap
+        seq_df = seq_df.loc[:, ~(seq_df == '*').any()]  # delete all columns with a *
+        seq_df = seq_df.loc[:, ~(seq_df == 'X').any()]  # delete all columns with an 'X'
 
         # convert the dataframe back to a dictionary of lists
         sequence_dict = seq_df.T.to_dict('list')
 
         # convert the dictionary of lists to a typical dictionary of strings
         for key in sequence_dict.keys():
-            sequence_dict[key] = ''.join(sequence_dict[key])
+            sequence_dict[key] = ''.join(sequence_dict[key])#
 
         # fix the processed alignment
         self.sequences = sequence_dict
