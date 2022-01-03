@@ -290,6 +290,7 @@ class AlignmentFasta:
         seq_df = seq_df.loc[:, ~(seq_df == '-').any()]  # delete all columns with a gap
         seq_df = seq_df.loc[:, ~(seq_df == '*').any()]  # delete all columns with a *
         seq_df = seq_df.loc[:, ~(seq_df == 'X').any()]  # delete all columns with an 'X'
+        seq_df = seq_df.loc[:, ~(seq_df == '?').any()]  # delete all columns with an '?'
 
         # convert the dataframe back to a dictionary of lists
         sequence_dict = seq_df.T.to_dict('list')
