@@ -156,7 +156,7 @@ class AlignmentFasta:
             MEGAN generates Alignments with 'flutter edges', which we will just cut off.
             '''
 
-            align_list.append(AlignmentFasta.read_file(f'{path}\\{filename}'))
+            align_list.append(AlignmentFasta.read_file(f'{path}/{filename}'))
 
         return align_list
 
@@ -256,13 +256,13 @@ class AlignmentFasta:
 
         alignment_list = AlignmentFasta.read_directory(path)  # get all alignments from the directory
 
-        folder_name = path.split('\\')[-1]  # get the name of the folder to know where the file came from
+        folder_name = path.split('/')[-1]  # get the name of the folder to know where the file came from
 
         # iterate over all alignments, delete their gaped columns and save them
         for index, alignment in enumerate(alignment_list):
             alignment.__delete_unusable_columns()
             id_num = calulate_identity(alignment) #calculate identity
-            alignment.write_file(f'processed\\{folder_name}_{id_num}_processed_{index}.fasta')
+            alignment.write_file(f'processed/{folder_name}_{id_num}_processed_{index}.fasta')
 
     def __delete_unusable_columns(self) -> None:
         """
@@ -290,6 +290,7 @@ class AlignmentFasta:
         seq_df = seq_df.loc[:, ~(seq_df == '-').any()]  # delete all columns with a gap
         seq_df = seq_df.loc[:, ~(seq_df == '*').any()]  # delete all columns with a *
         seq_df = seq_df.loc[:, ~(seq_df == 'X').any()]  # delete all columns with an 'X'
+        seq_df = seq_df.loc[:, ~(seq_df == '?').any()]  # delete all columns with an '?'
 
         # convert the dataframe back to a dictionary of lists
         sequence_dict = seq_df.T.to_dict('list')
@@ -303,7 +304,7 @@ class AlignmentFasta:
 
 
 def main():
-    AlignmentFasta.preprocess_directory('Data\\Bacteroidetes_Alphaproteobacteria_Gammaproteobacteria_priest_2021')
+    AlignmentFasta.preprocess_directory('Data/Proteobacteria_priest_2021')
     return None
 
 

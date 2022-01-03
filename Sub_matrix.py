@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from Bio import AlignIO
+import math
 
 
 class SubstitutionMatrix:
@@ -9,7 +10,7 @@ class SubstitutionMatrix:
     @staticmethod
     def count_aa_in_seq(sequence: str):
         """
-        Function to count aminoacids in a sequence
+        Function to count amino acids in a sequence
         :param sequence:
         :return:
 
@@ -101,12 +102,13 @@ class SubstitutionMatrix:
             if not (filename.endswith('.fa') or filename.endswith('.fasta')):
                 continue
 
-            frequency_table = SubstitutionMatrix.count_frequencies_in_file(frequency_table, f'{path}\\{filename}')
+            frequency_table = SubstitutionMatrix.count_frequencies_in_file(frequency_table, f'{path}/{filename}')
 
         return frequency_table
 
 
 if __name__ == '__main__':
+
     """
     Test 1
     """
@@ -123,7 +125,7 @@ if __name__ == '__main__':
 
     frequency_table = pd.DataFrame(np.zeros((len(aa_dict), len(aa_dict))), columns=aa_dict, index=aa_dict)
 
-    path = "processed\\_7_processed_0.fasta"
+    path = "processed/Proteobacteria_priest_2021_0_processed_7.fasta"
 
     out_matrix = SubstitutionMatrix.count_frequencies_in_file(frequency_table, path)
 
@@ -133,8 +135,29 @@ if __name__ == '__main__':
     Test 3: Testing SubstitutionMatrix.read_directory with "processed" directory
     """
 
-    path = "processed\\"
+    path = "processed/"
 
     table = SubstitutionMatrix.read_directory(path)
+
+    print(table)
+
+
+    """
+    Calculate the substitution matrix
+    """
+
+
+    numOfEntries = np.triu(table).sum()
+
+    table["sum"] = table.sum(axis=1) / numOfEntries
+
+    for i in aa_dict:
+        table[i] = table[i].apply(lambda x: x / numOfEntries)
+
+    lamb = 0.347
+    for i in aa_dict:
+        for j in aa_dict:
+            table[i][j] = int(1 / lamb * math.log((table[i][j] / (table['sum'][i] * table['sum'][j])), 2))
+    table = table.drop(['sum'], axis=1)
 
     print(table)
