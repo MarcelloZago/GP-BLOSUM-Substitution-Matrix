@@ -142,9 +142,10 @@ class SubstitutionMatrix:
         # Calculate the log ratio
 
         sub_matrix = pd.DataFrame(np.zeros((len(aa_dict), len(aa_dict))), columns=aa_dict, index=aa_dict)
+
         for i in aa_dict:
             for j in aa_dict:
-                sub_matrix[i][j] = int(math.log((table[i][j] / exp_table[i][j]), 2))
+                sub_matrix[i][j] = round(2 * math.log((table[i][j] / exp_table[i][j]), 2))
 
         return sub_matrix
 
@@ -178,7 +179,7 @@ if __name__ == '__main__':
     Test 3: Testing SubstitutionMatrix.read_directory with "processed" directory
     """
 
-    path = "processed/"
+    path = "processed\\"
 
     #table= SubstitutionMatrix.read_directory(path)
 
@@ -189,4 +190,4 @@ if __name__ == '__main__':
     Calculate the substitution matrix
     """
     sub_matrix = SubstitutionMatrix.sub_matrix(path)
-    print(sub_matrix)
+    print(sub_matrix.to_string)
