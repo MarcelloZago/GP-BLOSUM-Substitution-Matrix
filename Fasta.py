@@ -304,7 +304,7 @@ class AlignmentFasta:
 
 
 def main():
-    AlignmentFasta.preprocess_directory('Data/Proteobacteria_priest_2021')
+    AlignmentFasta.preprocess_directory('Data/Deltaproteobacteria_Bacteroidia_firmicutes_xie_2020')
     return None
 
 
