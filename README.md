@@ -8,8 +8,8 @@ This section is a collection of all functions and tasks that need to be implemen
 
 - Deletion of gaps in the alignment (Preprocessing) [Marcello]
 - Calculation of identicality [Jasmin]
-- Counting of frequencies []
-- Calculation of the actual log-odd-scores (the matrix) []
+- Counting of frequencies [Manuel]
+- Calculation of the actual log-odd-scores (the matrix) [Dolores]
 
 ## Project structure and naming convention
 
