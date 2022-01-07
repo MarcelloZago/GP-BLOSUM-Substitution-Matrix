@@ -7,7 +7,7 @@ import pandas as pd
 from Bio import AlignIO
 
 
-def calulate_identity(align: AlignmentFasta) -> int:
+def calculate_identity(align: AlignmentFasta) -> int:
     """
     Function that calculates the identity of sequences in file
     Identical residues divided by length of alignment multiplied by amount of pairs
@@ -26,16 +26,16 @@ def calulate_identity(align: AlignmentFasta) -> int:
     identical_residues = 0
     num_of_pairs = 0
 
-    for values in align.sequences.values(): #get all sequences of file
+    for values in align.sequences.values():  # get all sequences of file
         seqs.append(values)
 
-    for i in itertools.combinations(seqs,2): #find all pairwise combinations
+    for i in itertools.combinations(seqs, 2):  # find all pairwise combinations
         for j in range(len(i[0])):
-            if i[0][j] == i[1][j]: #if same residue in row
+            if i[0][j] == i[1][j]:  # if same residue in row
                 identical_residues += 1
         num_of_pairs += 1
 
-    id_num = (identical_residues / (align.seq_length * num_of_pairs)) * 100 #calulate identity
+    id_num = (identical_residues / (align.seq_length * num_of_pairs)) * 100  # calculate identity
 
     return round(id_num)
 
@@ -261,7 +261,11 @@ class AlignmentFasta:
         # iterate over all alignments, delete their gaped columns and save them
         for index, alignment in enumerate(alignment_list):
             alignment.__delete_unusable_columns()
-            id_num = calulate_identity(alignment) #calculate identity
+
+            if alignment.seq_length == 0:  # if all columns are deleted, we do not have to consider the file
+                continue
+
+            id_num = calculate_identity(alignment)  # calculate identity
             alignment.write_file(f'processed/{folder_name}_{id_num}_processed_{index}.fasta')
 
     def __delete_unusable_columns(self) -> None:
@@ -292,19 +296,20 @@ class AlignmentFasta:
         seq_df = seq_df.loc[:, ~(seq_df == 'X').any()]  # delete all columns with an 'X'
         seq_df = seq_df.loc[:, ~(seq_df == '?').any()]  # delete all columns with an '?'
 
-        # convert the dataframe back to a dictionary of lists
+        # convert the dataframe back to a dictionary of lists 
         sequence_dict = seq_df.T.to_dict('list')
 
         # convert the dictionary of lists to a typical dictionary of strings
         for key in sequence_dict.keys():
-            sequence_dict[key] = ''.join(sequence_dict[key])#
+            sequence_dict[key] = ''.join(sequence_dict[key])
 
         # fix the processed alignment
         self.sequences = sequence_dict
+        self.seq_length = len(list(sequence_dict.values())[0])
 
 
 def main():
-    AlignmentFasta.preprocess_directory('Data/Deltaproteobacteria_Bacteroidia_firmicutes_xie_2020')
+    AlignmentFasta.preprocess_directory('Data/prevotella_short_reads')
     return None
 
 
