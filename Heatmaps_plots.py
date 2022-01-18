@@ -1,3 +1,4 @@
+import matplotlib.cm
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import Tuple
@@ -36,7 +37,7 @@ def get_matrices(blosum_path: str, our_path: str) -> Tuple[np.ndarray, np.ndarra
     return amino_acids, blosum_62, our_matrix
 
 
-def plot_direct_heatmaps(blosum_path: str, our_path: str) -> None:
+def plot_direct_heatmaps(blosum_path: str, our_path: str, identity: int) -> None:
     """
     Function that generates a plot of two heatmaps (one for each matrix) for direct comparison of both.
 
@@ -46,6 +47,8 @@ def plot_direct_heatmaps(blosum_path: str, our_path: str) -> None:
         Path to the Blosum matrix that will be compared.
     our_path: str
         Path to our matrix that will be compared to.
+    identity: int
+        Identity that was used for the matrices. It is just used for the individual Heatmap titles.
 
     Returns
     -------
@@ -53,14 +56,17 @@ def plot_direct_heatmaps(blosum_path: str, our_path: str) -> None:
     """
     amino_acids, blosum_62, our_matrix = get_matrices(blosum_path, our_path)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
 
-    min_val = min(np.amin(blosum_62), np.amin(our_matrix))
-    max_val = max(np.amax(blosum_62), np.amax(our_matrix))
+    min_val = min(np.amin(blosum_62), np.amin(our_matrix))  # minimal value for both matrices
+    max_val = max(np.amax(blosum_62), np.amax(our_matrix))  # maximal value for both matrices
+
+    max_max = max(abs(min_val), abs(max_val))  # absolute max, for symmetrical colormap
 
     # generate the heatmap
-    hm1 = ax1.imshow(blosum_62, vmin=min_val, vmax=max_val)
-    hm2 = ax2.imshow(our_matrix, vmin=min_val, vmax=max_val)
+    cmap = matplotlib.cm.get_cmap('Spectral_r')
+    hm1 = ax1.imshow(blosum_62, vmin=-max_max, vmax=max_max, cmap=cmap)
+    hm2 = ax2.imshow(our_matrix, vmin=-max_max, vmax=max_max, cmap=cmap)
 
     # set the tick range
     ax1.set_xticks(list(range(20)))
@@ -75,8 +81,8 @@ def plot_direct_heatmaps(blosum_path: str, our_path: str) -> None:
     ax2.set_yticklabels(amino_acids)
 
     # set plot names
-    ax1.set_title('Blosum62')
-    ax2.set_title('Our matrix')
+    ax1.set_title(f'Blosum{identity}')
+    ax2.set_title(f'Our matrix ({identity})')
 
     # add a colorbar
     fig.colorbar(hm1, ax=ax1)
@@ -85,10 +91,41 @@ def plot_direct_heatmaps(blosum_path: str, our_path: str) -> None:
     plt.show()
 
 
+def plot_difference_plot(blosum_path: str, our_path: str) -> None:
+    """
+    Function that generates a heatmap of the absolute difference (blosum - our_matrix) of the two matrices.
+
+    Parameters
+    ----------
+    blosum_path: str
+        Path for the Blosum matrix.
+    our_path: str
+        Path for our matrix.
+
+    Returns
+    -------
+    None
+    """
+    amino_acids, blosum, our_matrix = get_matrices(blosum_path, our_path)
+
+    difference = np.abs(blosum - our_matrix)
+
+    plt.imshow(difference)
+
+    plt.colorbar()
+
+    plt.show()
+
+
 def main() -> None:
-    blosum = 'matrices\\blosum62.csv'
-    our = 'matrices\\our_matrix_2.csv'
-    plot_direct_heatmaps(blosum, our)
+
+    for identity in [62, 90]:
+        blosum = f'matrices\\blosum{identity}.csv'
+        our = f'matrices\\our_matrix_{identity}.csv'
+
+        plot_direct_heatmaps(blosum, our, identity)
+
+    # Not used
     # plot_difference_plot(blosum, our)
 
 
