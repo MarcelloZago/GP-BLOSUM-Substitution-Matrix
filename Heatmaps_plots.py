@@ -91,32 +91,6 @@ def plot_direct_heatmaps(blosum_path: str, our_path: str, identity: int) -> None
     plt.show()
 
 
-def plot_difference_plot(blosum_path: str, our_path: str) -> None:
-    """
-    Function that generates a heatmap of the absolute difference (blosum - our_matrix) of the two matrices.
-
-    Parameters
-    ----------
-    blosum_path: str
-        Path for the Blosum matrix.
-    our_path: str
-        Path for our matrix.
-
-    Returns
-    -------
-    None
-    """
-    amino_acids, blosum, our_matrix = get_matrices(blosum_path, our_path)
-
-    difference = np.abs(blosum - our_matrix)
-
-    plt.imshow(difference)
-
-    plt.colorbar()
-
-    plt.show()
-
-
 def main() -> None:
 
     for identity in [62, 90]:
@@ -124,9 +98,6 @@ def main() -> None:
         our = f'matrices\\our_matrix_{identity}.csv'
 
         plot_direct_heatmaps(blosum, our, identity)
-
-    # Not used
-    # plot_difference_plot(blosum, our)
 
 
 if __name__ == '__main__':
