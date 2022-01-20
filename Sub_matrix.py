@@ -8,25 +8,6 @@ import math
 class SubstitutionMatrix:
 
     @staticmethod
-    def count_aa_in_seq(sequence: str):
-        """
-        Function to count amino acids in a sequence
-        :param sequence:
-        :return:
-
-        Just a function to try out
-        """
-        aa_count = {"A": 0, "R": 0, "N": 0, "D": 0, "C": 0, "Q": 0, "E": 0, "G": 0, "H": 0, "I": 0, "L": 0, "K": 0,
-                    "M": 0, "F": 0, "P": 0, "S": 0,
-                    "T": 0, "W": 0, "Y": 0, "V": 0, "Total": 0}
-
-        for pos in sequence:
-            aa_count[pos] += 1
-            aa_count["Total"] += 1
-
-        return aa_count
-
-    @staticmethod
     def count_frequencies_in_file(frequency_table: pd.DataFrame, path: str):
         """
         Function to count frequencies of change in amino acids.
@@ -84,7 +65,6 @@ class SubstitutionMatrix:
         identity_value : int
             The identity threshold for the use of the alignments for the calculation.
 
-
         Returns
         -------
         A pandas dataframe with the frequency table
@@ -96,7 +76,7 @@ class SubstitutionMatrix:
         aa_list = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
 
         # generate frequencies table to sum
-        frequency_table = pd.DataFrame(np.zeros((len(aa_list), len(aa_list))), columns=aa_dict, index=aa_dict)
+        frequency_table = pd.DataFrame(np.zeros((len(aa_list), len(aa_list))), columns=aa_list, index=aa_list)
 
         # iterate over all files in the directory and calculate the added frequencies
         for filename in os.listdir(path):
@@ -122,6 +102,7 @@ class SubstitutionMatrix:
             The threshold value for the matrix we want to calculate.
         filename : str
             The file name of the file that is currently checked.
+
         Returns
         -------
         True if the identity of the given alignment is smaller than the given identity threshold.
@@ -134,6 +115,22 @@ class SubstitutionMatrix:
 
     @staticmethod
     def sub_matrix(path: str, identity_value: int):
+        """
+        Function that calculates the substitution matrix with all the alignments with a percentage identity lower or
+        equal than the specified in a given folder.
+
+        Parameters
+        ----------
+        path : str
+            path to directory that contains the alignments to calculate the substitution matrix.
+        identity_value : int
+            value of percentage identity that determines which alignments are used to calculate the substitution matrix.
+
+        Returns
+        -------
+        Calculated substitution matrix in an array.
+        """
+
         aa_list = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K",
                    "M", "F", "P", "S",
                    "T", "W", "Y", "V"]
@@ -175,46 +172,23 @@ class SubstitutionMatrix:
         return sub_matrix
 
 
-if __name__ == '__main__':
-
+def main():
     """
-    Test 1
-    """
-
-    # print(SubstitutionMatrix.count_aa_in_seq("AGGGAAAYYY"))
-
-    """
-    Test 2: Testing SubstitutionMatrix.count_frequencies_in_file with "_7_processed_0.fasta"
+    Basic script to execute the functions and calculate a specific substitution matrix
     """
 
     aa_dict = ["A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K",
                "M", "F", "P", "S",
                "T", "W", "Y", "V"]
 
-    # frequency_table = pd.DataFrame(np.zeros((len(aa_dict), len(aa_dict))), columns=aa_dict, index=aa_dict)
-    #
-    # path = "processed/Proteobacteria_priest_2021_0_processed_7.fasta"
-    #
-    # out_matrix = SubstitutionMatrix.count_frequencies_in_file(frequency_table, path)
-
-    # print(out_matrix)
-
-    """
-    Test 3: Testing SubstitutionMatrix.read_directory with "processed" directory
-    """
-
     path = "processed\\"
 
-    # table= SubstitutionMatrix.read_directory(path)
-
-    # print(table)
-
-    """
-    Calculate the substitution matrix
-    """
     identity_threshold = 62
 
     sub_matrix = SubstitutionMatrix.sub_matrix(path, identity_value=identity_threshold)
-    print(sub_matrix.to_string)
 
     sub_matrix.to_csv(f'matrices\\our_matrix_{identity_threshold}.csv')
+
+
+if __name__ == '__main__':
+    main()
